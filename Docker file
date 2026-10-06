@@ -1,8 +1,0 @@
-FROM ubuntu:22.04
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y xfce4 xfce4-terminal tightvncserver novnc websockify socat sudo wget curl unzip net-tools dbus-x11 && apt-get clean
-RUN useradd -m -s /bin/bash trader && echo "trader:1234" | chpasswd && usermod -aG sudo trader
-RUN mkdir -p /home/trader/.vnc && echo "1234" | vncpasswd -f > /home/trader/.vnc/passwd && chmod 600 /home/trader/.vnc/passwd && chown -R trader:trader /home/trader
-RUN echo '#!/bin/bash\nexport USER=trader\nexport HOME=/home/trader\nvncserver :1 -geometry 1280x800 -depth 24 -localhost no 2>/dev/null || true\nwebsockify --web /usr/share/novnc/ 6080 localhost:5901 &\nsleep infinity\n' > /start.sh && chmod +x /start.sh
-EXPOSE 10000
-CMD socat TCP-LISTEN:${PORT:-10000},reuseaddr,fork EXEC:"bash /start.sh",pty,stderr,setsid,sigint,sane
