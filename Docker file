@@ -1,0 +1,6 @@
+FROM kasmweb/wine:1.15.0-rolling
+USER root
+RUN apt-get update && apt-get install -y socat wget && wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe -O /home/kasm-user/mt5setup.exe && chown kasm-user:kasm-user /home/kasm-user/mt5setup.exe
+ENV VNC_PW=mt5uganda123
+EXPOSE 10000
+CMD /bin/bash -c "socat TCP-LISTEN:10000,fork TCP:127.0.0.1:6901 & /dockerstartup/kasm_startup.sh --wait"
