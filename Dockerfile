@@ -36,4 +36,5 @@ RUN chmod +x /usr/local/bin/mt5-launch.sh
 RUN mkdir -p /etc/xdg/autostart \
  && printf '[Desktop Entry]\nType=Application\nName=MetaTrader 5\nExec=/usr/local/bin/mt5-launch.sh\n' > /etc/xdg/autostart/mt5.desktop
 
-CMD bash -c "export CUSTOM_PORT=${PORT:-3000} && /init"
+# Map Render's PORT to the desktop's web port, then hand over to /init as PID 1
+ENTRYPOINT ["/bin/bash", "-c", "export CUSTOM_PORT=${PORT:-3000}; exec /init"]
