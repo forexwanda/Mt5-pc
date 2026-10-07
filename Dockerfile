@@ -8,19 +8,11 @@ ENV TITLE="Wanda Trading PC" \
 
 USER root
 
-# WineHQ stable (much better MT5 compatibility than Ubuntu's wine64 package)
-RUN dpkg --add-architecture i386 \
- && apt-get update \
- && apt-get install -y --no-install-recommends wget gnupg2 ca-certificates cabextract winbind xdotool \
- && mkdir -pm755 /etc/apt/keyrings \
- && wget -qO /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key \
- && . /etc/os-release \
- && wget -qNP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/${VERSION_CODENAME}/winehq-${VERSION_CODENAME}.sources \
- && apt-get update \
- && apt-get install -y --install-recommends winehq-stable \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    wine wine64 winbind cabextract wget ca-certificates xdotool \
  && rm -rf /var/lib/apt/lists/*
 
-# First-run installer + launcher (runs in /config, which is your persistent volume)
 RUN cat > /usr/local/bin/mt5-launch.sh <<'EOF'
 #!/bin/bash
 export WINEARCH=win64 WINEPREFIX=/config/.wine WINEDLLOVERRIDES="mscoree,mshtml=" WINEDEBUG=-all
@@ -34,7 +26,6 @@ if [ ! -f "$MT5_EXE" ]; then
   sleep 10
 fi
 
-# Keep MT5 alive; restart if it closes or crashes
 while true; do
   wine "$MT5_EXE" /portable
   sleep 5
@@ -42,10 +33,7 @@ done
 EOF
 RUN chmod +x /usr/local/bin/mt5-launch.sh
 
-# Autostart MT5 when the desktop loads
 RUN mkdir -p /etc/xdg/autostart \
  && printf '[Desktop Entry]\nType=Application\nName=MetaTrader 5\nExec=/usr/local/bin/mt5-launch.sh\n' > /etc/xdg/autostart/mt5.desktop
-
-VOLUME /config
 
 CMD bash -c "export CUSTOM_PORT=${PORT:-3000} && /init"
